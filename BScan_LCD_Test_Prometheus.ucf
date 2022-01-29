@@ -1,0 +1,24 @@
+# On the Prometheus FPGA board:
+# Input
+NET "CLK" LOC = "P40";      # CLK 50 MHz
+NET "Reset" LOC = "P15";    # SW0
+NET "Trigger" LOC = "P78" ; # SW9 (leftmost)
+
+# PORT "A" at the top-right corner of the board
+#
+# +3.3V      GND
+#     ********
+#     ********                   Pin-out:
+#   P28      P19   (P28, P44, P43, P41, P39, P21, P20, P19)
+#
+# Output to 2x16 LCD
+NET "Nibble<3>"  LOC =  "P28"; # LCD pin 14
+NET "Nibble<2>"  LOC =  "P44"; # LCD pin 13
+NET "Nibble<1>"  LOC =  "P43"; # LCD pin 12
+NET "Nibble<0>"  LOC =  "P41"; # LCD pin 11
+NET "RS"  LOC = "P19";         # LCD pin 4
+NET "E"  LOC =  "P20";         # LCD pin 6
+
+# On the 2x16 LCD:
+# Pin 3  (VE, Constant voltage) => GND
+# Pin 5 (Read/Write) => GND
