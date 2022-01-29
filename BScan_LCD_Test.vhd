@@ -59,7 +59,8 @@ architecture Behavioral of BScan_LCD_Test is
   signal user_UPDATE    : std_logic;
   signal user_TDO1      : std_logic;
   signal user_TDO2      : std_logic;
-  signal SHIFT_REGISTER : std_logic_vector(N_Chars*N-1 downto 0);
+  type CHAR_RAM_TYPE is array(0 to N_Chars-1) of std_logic_vector(7 downto 0);
+  signal SHIFT_REGISTER : CHAR_RAM_TYPE := (0=>x"00", others=>x"00");
 
   component LCDDriver4Bit is
     generic (CLK_FREQ : positive);  -- Frequency of CLK input in Hz
@@ -108,16 +109,20 @@ begin
 
   process(user_DRCK1)
   begin
-    if(user_RESET = '1') then
-      SHIFT_REGISTER <= (others => '0');
-    elsif (rising_edge(user_DRCK1)) then
-      -- JTAG Chain: TDI => SHIFT_REGISTER(MSB -> LSB) => TDO
-      SHIFT_REGISTER <= user_TDI & SHIFT_REGISTER(SHIFT_REGISTER'high downto 1);
-      user_TDO1      <= SHIFT_REGISTER(0);
+    if (rising_edge(user_DRCK1)) then
+      user_TDO1 <= SHIFT_REGISTER(0)(0);
+      -- JTAG Chain: TDI => SHIFT_REGISTER[31](MSB -> LSB) ... => SHIFT_REGISTER[0](MSB -> LSB) => TDO
+      for k in 0 to N_Chars - 1 loop
+        if (k = N_Chars - 1) then
+          SHIFT_REGISTER(k) <= user_TDI & SHIFT_REGISTER(k)(7 downto 1);
+        else
+          SHIFT_REGISTER(k) <= SHIFT_REGISTER(k+1)(0) & SHIFT_REGISTER(k)(7 downto 1);
+        end if;
+      end loop;
     end if;
   end process;
 
-  Letter <= SHIFT_REGISTER((N_Chars - Index)*N - 1 downto (N_Chars - Index - 1)*N);
+  Letter <= SHIFT_REGISTER(N_Chars - Index -1);
 
   process(CLK)
   begin
